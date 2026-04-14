@@ -26,7 +26,7 @@ teardown() {
   [ "$output" = "content" ]
 }
 
-@test "deploy skips identical files silently" {
+@test "deploy reports identical files as skipped" {
   echo "~/.testrc" > "$REPO_DIR/paths.conf"
   echo "same" > "$REPO_DIR/files/.testrc"
   echo "same" > "$TEST_HOME/.testrc"

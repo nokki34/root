@@ -50,7 +50,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 
   # differs — check force flag or prompt
-  if $FORCE; then
+  if [[ "$FORCE" == "true" ]]; then
     echo "[deploy] $line → overwriting"
   else
     printf "[conflict] %s → differs. Overwrite? [y/N] " "$line"
