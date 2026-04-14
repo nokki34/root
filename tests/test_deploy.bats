@@ -56,3 +56,38 @@ teardown() {
   run cat "$TEST_HOME/.config/mytool/config"
   [ "$output" = "cfg" ]
 }
+
+@test "deploy --force overwrites differing files without prompting" {
+  echo "~/.testrc" > "$REPO_DIR/paths.conf"
+  echo "new content" > "$REPO_DIR/files/.testrc"
+  echo "old content" > "$TEST_HOME/.testrc"
+
+  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --force
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"overwriting"* ]]
+  run cat "$TEST_HOME/.testrc"
+  [ "$output" = "new content" ]
+}
+
+@test "deploy -f is an alias for --force" {
+  echo "~/.testrc" > "$REPO_DIR/paths.conf"
+  echo "new" > "$REPO_DIR/files/.testrc"
+  echo "old" > "$TEST_HOME/.testrc"
+
+  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" -f
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"overwriting"* ]]
+}
+
+@test "deploy --force overwrites differing directories without prompting" {
+  mkdir -p "$REPO_DIR/files/.config/mytool"
+  echo "new" > "$REPO_DIR/files/.config/mytool/config"
+  mkdir -p "$TEST_HOME/.config/mytool"
+  echo "old" > "$TEST_HOME/.config/mytool/config"
+
+  echo "~/.config/mytool" > "$REPO_DIR/paths.conf"
+  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --force
+  [ "$status" -eq 0 ]
+  run cat "$TEST_HOME/.config/mytool/config"
+  [ "$output" = "new" ]
+}
