@@ -53,3 +53,32 @@ teardown() {
   run cat "$REPO_DIR/files/.testrc"
   [ "$output" = "hello" ]
 }
+
+@test "collect copies a directory recursively into files/" {
+  mkdir -p "$TEST_HOME/.config/mytool"
+  echo "cfg" > "$TEST_HOME/.config/mytool/config"
+  echo "~/.config/mytool" > "$REPO_DIR/paths.conf"
+
+  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh"
+
+  [ -d "$REPO_DIR/files/.config/mytool" ]
+  [ -f "$REPO_DIR/files/.config/mytool/config" ]
+  run cat "$REPO_DIR/files/.config/mytool/config"
+  [ "$output" = "cfg" ]
+}
+
+@test "collect replaces existing directory in files/ (no merge)" {
+  mkdir -p "$TEST_HOME/.config/mytool"
+  echo "new" > "$TEST_HOME/.config/mytool/config"
+
+  mkdir -p "$REPO_DIR/files/.config/mytool"
+  echo "old" > "$REPO_DIR/files/.config/mytool/old_file"
+
+  echo "~/.config/mytool" > "$REPO_DIR/paths.conf"
+  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh"
+
+  # old_file should be gone (clean replace, not merge)
+  [ ! -f "$REPO_DIR/files/.config/mytool/old_file" ]
+  run cat "$REPO_DIR/files/.config/mytool/config"
+  [ "$output" = "new" ]
+}
