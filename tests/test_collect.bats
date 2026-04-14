@@ -44,3 +44,12 @@ teardown() {
   [[ "$output" == *"[warn]"* ]]
   [[ "$output" == *"skipping"* ]]
 }
+
+@test "collect handles path entry with trailing whitespace" {
+  # Write paths.conf with trailing spaces and tabs, no trailing newline
+  printf "~/.testrc   \t" > "$REPO_DIR/paths.conf"
+  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh"
+  [ -f "$REPO_DIR/files/.testrc" ]
+  run cat "$REPO_DIR/files/.testrc"
+  [ "$output" = "hello" ]
+}

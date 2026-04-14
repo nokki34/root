@@ -5,7 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PATHS_CONF="$SCRIPT_DIR/paths.conf"
 FILES_DIR="$SCRIPT_DIR/files"
 
-while IFS= read -r line; do
+while IFS= read -r line || [[ -n "$line" ]]; do
+  line="${line%"${line##*[! 	]}"}"   # trim trailing spaces/tabs
   # skip blank lines and comments
   [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
 
