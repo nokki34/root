@@ -23,6 +23,11 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+# fnm
+export FNM_PATH="$HOME/.local/share/fnm"
+export PATH="$FNM_PATH:$PATH"
+eval "$(fnm env --use-on-cd --shell zsh)"
+
 export PATH="$HOME/fxpro/local_script/:$PATH"
 export PATH="/opt/homebrew/opt/jupyterlab/bin/:$PATH"
 
