@@ -1,0 +1,7 @@
+name: dev
+root: ~/
+
+windows:
+  - editor: nvim .
+  - shell: ""
+  - claude: claude
