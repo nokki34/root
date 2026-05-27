@@ -27,7 +27,7 @@ git push
 
 **Restore configs on a new machine:**
 ```bash
-brew install tmuxinator
+brew install tmux tmuxinator
 git clone git@github.com:nokki34/root.git ~/nokki-config
 cd ~/nokki-config
 ./deploy.sh           # prompts before overwriting existing files
