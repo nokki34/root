@@ -8,6 +8,7 @@ Personal dotfiles sync — captures local configs into this repo and restores th
 |------|------|
 | Neovim | `~/.config/nvim` |
 | tmux | `~/.tmux.conf` |
+| tmuxinator | `~/.config/tmuxinator` |
 | Aerospace | `~/.aerospace.toml` |
 | WezTerm | `~/.wezterm.lua` |
 | Zsh | `~/.zshrc` |
@@ -26,10 +27,16 @@ git push
 
 **Restore configs on a new machine:**
 ```bash
+brew install tmuxinator
 git clone git@github.com:nokki34/root.git ~/nokki-config
 cd ~/nokki-config
 ./deploy.sh           # prompts before overwriting existing files
 ./deploy.sh --force   # overwrites everything without prompting
+```
+
+Start the dev session:
+```bash
+tmuxinator start dev
 ```
 
 ## How it works
