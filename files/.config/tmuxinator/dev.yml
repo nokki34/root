@@ -1,5 +1,5 @@
 name: dev
-root: ~/
+root: <%= ENV['PWD'] %>
 
 windows:
   - editor: nvim .
