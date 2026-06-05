@@ -25,6 +25,19 @@ git commit -m "sync: $(date +%Y-%m-%d)"
 git push
 ```
 
+## Per-machine configs
+
+Both scripts take an optional machine name to use a separate folder, keeping
+configs from different machines from overwriting each other:
+
+```bash
+./collect.sh arch    # captures into files-arch/ instead of files/
+./deploy.sh arch     # restores from files-arch/
+```
+
+With no machine name they use `files/` (the mac originals) as before.
+Currently `files-arch/` holds the Arch versions of `.zshrc` and `.tmux.conf`.
+
 **Restore configs on a new machine:**
 ```bash
 brew install tmux tmuxinator

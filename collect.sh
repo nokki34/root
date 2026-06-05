@@ -3,7 +3,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PATHS_CONF="$SCRIPT_DIR/paths.conf"
-FILES_DIR="$SCRIPT_DIR/files"
+
+# optional machine name, e.g. `./collect.sh arch` → files-arch/
+MACHINE="${1:-}"
+FILES_DIR="$SCRIPT_DIR/files${MACHINE:+-$MACHINE}"
+FILES_NAME="$(basename "$FILES_DIR")"
 
 while IFS= read -r line || [[ -n "$line" ]]; do
   line="${line%"${line##*[! 	]}"}"   # trim trailing spaces/tabs
@@ -25,11 +29,11 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   mkdir -p "$(dirname "$dest")"
 
   if [ -d "$path" ]; then
-    echo "[collect] $line → files/$rel/"
+    echo "[collect] $line → $FILES_NAME/$rel/"
     rm -rf "$dest"
     cp -r "$path" "$dest"
   else
-    echo "[collect] $line → files/$rel"
+    echo "[collect] $line → $FILES_NAME/$rel"
     cp "$path" "$dest"
   fi
 

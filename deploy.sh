@@ -2,16 +2,24 @@
 set -euo pipefail
 
 FORCE=false
+MACHINE=""
 for arg in "$@"; do
   case "$arg" in
     -f|--force) FORCE=true ;;
-    *) echo "Unknown flag: $arg"; exit 1 ;;
+    -*) echo "Unknown flag: $arg"; exit 1 ;;
+    *) MACHINE="$arg" ;;   # optional machine name, e.g. `./deploy.sh arch` → files-arch/
   esac
 done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PATHS_CONF="$SCRIPT_DIR/paths.conf"
-FILES_DIR="$SCRIPT_DIR/files"
+FILES_DIR="$SCRIPT_DIR/files${MACHINE:+-$MACHINE}"
+FILES_NAME="$(basename "$FILES_DIR")"
+
+if [ ! -d "$FILES_DIR" ]; then
+  echo "[error] $FILES_NAME/ does not exist"
+  exit 1
+fi
 
 while IFS= read -r line || [[ -n "$line" ]]; do
   line="${line%"${line##*[! 	]}"}"   # trim trailing spaces/tabs
@@ -22,7 +30,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   src="$FILES_DIR/$rel"
 
   if [ ! -e "$src" ]; then
-    echo "[warn]    $line not in files/, skipping"
+    echo "[warn]    $line not in $FILES_NAME/, skipping"
     continue
   fi
 
