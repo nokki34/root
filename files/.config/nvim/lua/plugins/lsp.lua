@@ -92,16 +92,28 @@ return {
       })
 
       require('mason-lspconfig').setup({
-        ensure_installed = { }, -- typescript is handled separately by typescript-tools plugin
+        ensure_installed = { "zls", "lua_ls" }, -- zls = Zig, lua_ls = Lua (typescript is handled separately by typescript-tools plugin)
         handlers = {
           -- this first function is the "default handler"
           -- it applies to every language server without a "custom handler"
 	  function(server_name)
 		  if server_name == "ts_ls" then
 			  return
-		  end 
+		  end
 
 		  require('lspconfig')[server_name].setup({})
+	  end,
+
+	  -- lua_ls: teach it about the `vim` global so editing nvim config
+	  -- doesn't flag `vim` as undefined
+	  ["lua_ls"] = function()
+		  require('lspconfig').lua_ls.setup({
+			  settings = {
+				  Lua = {
+					  diagnostics = { globals = { "vim" } },
+				  },
+			  },
+		  })
 	  end,
   }
       })
