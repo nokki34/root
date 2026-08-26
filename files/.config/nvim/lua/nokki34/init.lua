@@ -1,5 +1,6 @@
 require("nokki34.remap")
 require("nokki34.indent")
+require("nokki34.cheatsheet")
 
 vim.opt.number = true        -- Show absolute line number on the current line
 vim.opt.relativenumber = true -- Show relative line numbers on all other lines
