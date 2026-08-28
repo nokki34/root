@@ -1,0 +1,12 @@
+
+# Unbind the default prefix (Ctrl + B)
+unbind C-b
+
+# Set Ctrl + A as the new prefix
+set -g prefix C-a
+
+# Bind Ctrl + A to send the prefix
+bind C-a send-prefix
+
+# Copy to clipboard using Enter
+bind-key -T copy-mode-vi Enter send-keys -X copy-pipe "pbcopy"

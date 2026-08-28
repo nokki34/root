@@ -6,6 +6,7 @@ setup() {
   mkdir -p "$REPO_DIR/files"
 
   cp "$BATS_TEST_DIRNAME/../deploy.sh" "$REPO_DIR/deploy.sh"
+  cp "$BATS_TEST_DIRNAME/../lib.sh" "$REPO_DIR/lib.sh"
   chmod +x "$REPO_DIR/deploy.sh"
 
   export TEST_HOME REPO_DIR

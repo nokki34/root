@@ -14,6 +14,7 @@ setup() {
 
   # Copy collect.sh into temp repo
   cp "$BATS_TEST_DIRNAME/../collect.sh" "$REPO_DIR/collect.sh"
+  cp "$BATS_TEST_DIRNAME/../lib.sh" "$REPO_DIR/lib.sh"
   chmod +x "$REPO_DIR/collect.sh"
 
   export TEST_HOME REPO_DIR

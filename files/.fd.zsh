@@ -1,5 +1,8 @@
 FD_CACHE="$HOME/.cache/fd-repos"
-FD_PATH=~/fxpro/
+# FD_PATH is machine-specific: set it in ~/.zshrc, which is sourced after this
+# file (see files-<machine>/.zshrc.append). Only read inside fd-refresh, so
+# assigning it later is fine. Fallback keeps a machine with no overlay sane.
+: "${FD_PATH:=$HOME}"
 
 fd-refresh() {
   mkdir -p "$HOME/.cache"

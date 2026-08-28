@@ -13,51 +13,61 @@ done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PATHS_CONF="$SCRIPT_DIR/paths.conf"
-FILES_DIR="$SCRIPT_DIR/files${MACHINE:+-$MACHINE}"
-FILES_NAME="$(basename "$FILES_DIR")"
+BASE_DIR="$SCRIPT_DIR/files"
+MACHINE_DIR=""
 
-if [ ! -d "$FILES_DIR" ]; then
-  echo "[error] $FILES_NAME/ does not exist"
+if [ ! -d "$BASE_DIR" ]; then
+  echo "[error] files/ does not exist"
   exit 1
 fi
 
-while IFS= read -r line || [[ -n "$line" ]]; do
-  line="${line%"${line##*[! 	]}"}"   # trim trailing spaces/tabs
-  [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+if [ -n "$MACHINE" ]; then
+  MACHINE_DIR="$SCRIPT_DIR/files-$MACHINE"
+  if [ ! -d "$MACHINE_DIR" ]; then
+    echo "[error] files-$MACHINE/ does not exist"
+    exit 1
+  fi
+fi
 
-  path="${line/#\~/$HOME}"
-  rel="${path#"$HOME"/}"
-  src="$FILES_DIR/$rel"
+# shellcheck source=lib.sh
+. "$SCRIPT_DIR/lib.sh"
 
-  if [ ! -e "$src" ]; then
-    echo "[warn]    $line not in $FILES_NAME/, skipping"
+# Assemble base + overlay in a staging dir, then treat that as the source of truth.
+STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
+
+SOURCES="files/"
+[ -n "$MACHINE" ] && SOURCES="files/ + files-$MACHINE/"
+
+while IFS=$'\t' read -r line rel; do
+  path="$HOME/$rel"
+
+  if ! layer_stage "$rel" "$STAGE"; then
+    echo "[warn]    $line not in $SOURCES, skipping"
     continue
+  fi
+  src="$STAGE/$rel"
+
+  if [ -n "$MACHINE" ]; then
+    # show how each diverging file was assembled, so the overlay is auditable
+    while IFS= read -r f; do
+      mode="$(layer_mode "$f")"
+      [ "$mode" = "base" ] || echo "[layer]   $f ← $mode"
+    done < <(layer_rels "$rel")
   fi
 
   if [ ! -e "$path" ]; then
     echo "[deploy] $line → new, copying"
     mkdir -p "$(dirname "$path")"
-    if [ -d "$src" ]; then
-      cp -r "$src" "$path"
-    else
-      cp "$src" "$path"
-    fi
+    cp -r "$src" "$path"
     continue
   fi
 
-  # check if identical
-  if [ -d "$src" ]; then
-    identical=$(diff -rq "$src" "$path" > /dev/null 2>&1 && echo yes || echo no)
-  else
-    identical=$(diff -q "$src" "$path" > /dev/null 2>&1 && echo yes || echo no)
-  fi
-
-  if [ "$identical" = "yes" ]; then
+  if diff -rq "$src" "$path" > /dev/null 2>&1; then
     echo "[deploy] $line → identical, skipping"
     continue
   fi
 
-  # differs — check force flag or prompt
   if [[ "$FORCE" == "true" ]]; then
     echo "[deploy] $line → overwriting"
   else
@@ -70,11 +80,6 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     echo "[deploy] $line → overwritten"
   fi
 
-  if [ -d "$src" ]; then
-    rm -rf "$path"
-    cp -r "$src" "$path"
-  else
-    cp "$src" "$path"
-  fi
-
-done < "$PATHS_CONF"
+  rm -rf "$path"
+  cp -r "$src" "$path"
+done < <(paths_each)

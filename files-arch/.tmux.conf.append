@@ -1,0 +1,3 @@
+
+# Copy to clipboard using Enter
+bind-key -T copy-mode-vi Enter send-keys -X copy-pipe "wl-copy"

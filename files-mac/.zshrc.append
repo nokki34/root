@@ -1,0 +1,21 @@
+
+# fxpro
+export PATH="$HOME/fxpro/local_script/:$PATH"
+
+# macOS: keep the machine awake (pmset)
+awake() {
+  local hours=${1:-6}
+  awake-off >/dev/null 2>&1
+  sudo sh -c "pmset -a disablesleep 1; (sleep $((hours*3600)); pmset -a disablesleep 0) & echo \$! > /tmp/awake.pid"
+  echo "awake: sleep disabled for ${hours}h (until $(date -v+${hours}H '+%H:%M'))"
+}
+
+awake-off() {
+  [ -f /tmp/awake.pid ] && sudo kill "$(cat /tmp/awake.pid)" 2>/dev/null
+  sudo rm -f /tmp/awake.pid
+  sudo pmset -a disablesleep 0
+  echo "awake: sleep re-enabled"
+}
+
+# fd
+export FD_PATH=~/fxpro/
