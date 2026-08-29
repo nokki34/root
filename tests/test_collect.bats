@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
+  unset DOTFILES_MACHINE
   # Create a temp HOME with a test file
   TEST_HOME=$(mktemp -d)
   echo "hello" > "$TEST_HOME/.testrc"
@@ -25,7 +26,7 @@ teardown() {
 }
 
 @test "collect copies a file into files/" {
-  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh"
+  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh" --base
   [ -f "$REPO_DIR/files/.testrc" ]
   run cat "$REPO_DIR/files/.testrc"
   [ "$output" = "hello" ]
@@ -33,14 +34,14 @@ teardown() {
 
 @test "collect skips blank lines and comments" {
   printf "# comment\n\n~/.testrc\n" > "$REPO_DIR/paths.conf"
-  HOME=$TEST_HOME run bash "$REPO_DIR/collect.sh"
+  HOME=$TEST_HOME run bash "$REPO_DIR/collect.sh" --base
   [ "$status" -eq 0 ]
   [ -f "$REPO_DIR/files/.testrc" ]
 }
 
 @test "collect warns and skips missing path" {
   echo "~/.nonexistent" > "$REPO_DIR/paths.conf"
-  HOME=$TEST_HOME run bash "$REPO_DIR/collect.sh"
+  HOME=$TEST_HOME run bash "$REPO_DIR/collect.sh" --base
   [ "$status" -eq 0 ]
   [[ "$output" == *"[warn]"* ]]
   [[ "$output" == *"skipping"* ]]
@@ -49,7 +50,7 @@ teardown() {
 @test "collect handles path entry with trailing whitespace" {
   # Write paths.conf with trailing spaces and tabs, no trailing newline
   printf "~/.testrc   \t" > "$REPO_DIR/paths.conf"
-  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh"
+  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh" --base
   [ -f "$REPO_DIR/files/.testrc" ]
   run cat "$REPO_DIR/files/.testrc"
   [ "$output" = "hello" ]
@@ -60,7 +61,7 @@ teardown() {
   echo "cfg" > "$TEST_HOME/.config/mytool/config"
   echo "~/.config/mytool" > "$REPO_DIR/paths.conf"
 
-  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh"
+  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh" --base
 
   [ -d "$REPO_DIR/files/.config/mytool" ]
   [ -f "$REPO_DIR/files/.config/mytool/config" ]
@@ -76,7 +77,7 @@ teardown() {
   echo "old" > "$REPO_DIR/files/.config/mytool/old_file"
 
   echo "~/.config/mytool" > "$REPO_DIR/paths.conf"
-  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh"
+  HOME=$TEST_HOME bash "$REPO_DIR/collect.sh" --base
 
   # old_file should be gone (clean replace, not merge)
   [ ! -f "$REPO_DIR/files/.config/mytool/old_file" ]

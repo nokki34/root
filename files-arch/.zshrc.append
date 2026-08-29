@@ -8,3 +8,6 @@ ssh-add ~/.ssh/id_ed25519_github
 
 # fd
 export FD_PATH=~/personal
+
+# dotfiles
+export DOTFILES_MACHINE=arch

@@ -13,6 +13,19 @@
 #
 # Callers set BASE_DIR, PATHS_CONF, and MACHINE_DIR ("" when no machine named).
 
+# Which machine layer to use: $DOTFILES_MACHINE, else the command-line
+# argument. Neither being set is an error - guessing would risk writing the
+# wrong machine's configs, which is the whole thing we are avoiding.
+#
+# Sets MACHINE ("" when nothing is set).
+resolve_machine() {
+  if [ -n "${DOTFILES_MACHINE:-}" ]; then
+    MACHINE="$DOTFILES_MACHINE"
+  else
+    MACHINE="${1:-}"
+  fi
+}
+
 # Emit each managed entry from paths.conf as: <raw line><TAB><$HOME-relative path>
 #
 # An entry may be scoped to particular machines with a trailing

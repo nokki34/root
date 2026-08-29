@@ -19,3 +19,6 @@ awake-off() {
 
 # fd
 export FD_PATH=~/fxpro/
+
+# dotfiles
+export DOTFILES_MACHINE=mac

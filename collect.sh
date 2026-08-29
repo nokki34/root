@@ -1,16 +1,39 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MACHINE="${1:-}"   # optional machine name, e.g. `./collect.sh arch` → files-arch/
+FORCE=false
+BASE_ONLY=false
+MACHINE=""
+for arg in "$@"; do
+  case "$arg" in
+    -f|--force) FORCE=true ;;
+    --base) BASE_ONLY=true ;;   # capture straight into files/, ignoring layers
+    -*) echo "Unknown flag: $arg"; exit 1 ;;
+    *) MACHINE="$arg" ;;   # optional machine name, e.g. `./collect.sh arch` → files-arch/
+  esac
+done
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PATHS_CONF="$SCRIPT_DIR/paths.conf"
 BASE_DIR="$SCRIPT_DIR/files"
 MACHINE_DIR=""
-[ -n "$MACHINE" ] && MACHINE_DIR="$SCRIPT_DIR/files-$MACHINE"
 
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
+
+if [ "$BASE_ONLY" = "true" ]; then
+  MACHINE=""
+  echo "[machine] none - files/ only (--base)"
+else
+  resolve_machine "$MACHINE"
+  if [ -z "$MACHINE" ]; then
+    echo "[error] no machine set. Export DOTFILES_MACHINE or pass one:"
+    echo "          $(basename "$0") arch"
+    exit 1
+  fi
+  MACHINE_DIR="$SCRIPT_DIR/files-$MACHINE"
+  echo "[machine] $MACHINE"
+fi
 
 mkdir -p "$BASE_DIR"
 [ -n "$MACHINE_DIR" ] && mkdir -p "$MACHINE_DIR"

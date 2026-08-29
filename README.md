@@ -45,7 +45,19 @@ Each overlay entry declares its own mode by filename:
 ./collect.sh arch    # ~ → files/ + files-arch/
 ```
 
-With no machine name both scripts use `files/` alone.
+### Which machine am I?
+
+`$DOTFILES_MACHINE`, else the argument. If neither is set the run fails —
+guessing is how you end up applying the other machine's configs.
+
+```bash
+export DOTFILES_MACHINE=arch   # in ~/.zshrc, then just:
+./deploy.sh
+./collect.sh
+
+./deploy.sh arch               # or name it each time
+./deploy.sh --base             # files/ alone, no machine layer
+```
 
 ### What each machine currently overrides
 

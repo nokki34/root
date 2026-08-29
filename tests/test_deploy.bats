@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
+  unset DOTFILES_MACHINE
   TEST_HOME=$(mktemp -d)
   REPO_DIR=$(mktemp -d)
   mkdir -p "$REPO_DIR/files"
@@ -20,7 +21,7 @@ teardown() {
   echo "~/.testrc" > "$REPO_DIR/paths.conf"
   echo "content" > "$REPO_DIR/files/.testrc"
 
-  HOME=$TEST_HOME bash "$REPO_DIR/deploy.sh"
+  HOME=$TEST_HOME bash "$REPO_DIR/deploy.sh" --base
 
   [ -f "$TEST_HOME/.testrc" ]
   run cat "$TEST_HOME/.testrc"
@@ -32,7 +33,7 @@ teardown() {
   echo "same" > "$REPO_DIR/files/.testrc"
   echo "same" > "$TEST_HOME/.testrc"
 
-  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh"
+  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --base
   [ "$status" -eq 0 ]
   [[ "$output" == *"identical, skipping"* ]]
 }
@@ -41,7 +42,7 @@ teardown() {
   echo "~/.testrc" > "$REPO_DIR/paths.conf"
   # no files/.testrc
 
-  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh"
+  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --base
   [ "$status" -eq 0 ]
   [[ "$output" == *"[warn]"* ]]
 }
@@ -51,7 +52,7 @@ teardown() {
   echo "cfg" > "$REPO_DIR/files/.config/mytool/config"
   echo "~/.config/mytool" > "$REPO_DIR/paths.conf"
 
-  HOME=$TEST_HOME bash "$REPO_DIR/deploy.sh"
+  HOME=$TEST_HOME bash "$REPO_DIR/deploy.sh" --base
 
   [ -d "$TEST_HOME/.config/mytool" ]
   run cat "$TEST_HOME/.config/mytool/config"
@@ -63,7 +64,7 @@ teardown() {
   echo "new content" > "$REPO_DIR/files/.testrc"
   echo "old content" > "$TEST_HOME/.testrc"
 
-  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --force
+  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --base --force
   [ "$status" -eq 0 ]
   [[ "$output" == *"overwriting"* ]]
   run cat "$TEST_HOME/.testrc"
@@ -75,7 +76,7 @@ teardown() {
   echo "new" > "$REPO_DIR/files/.testrc"
   echo "old" > "$TEST_HOME/.testrc"
 
-  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" -f
+  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --base -f
   [ "$status" -eq 0 ]
   [[ "$output" == *"overwriting"* ]]
 }
@@ -87,7 +88,7 @@ teardown() {
   echo "old" > "$TEST_HOME/.config/mytool/config"
 
   echo "~/.config/mytool" > "$REPO_DIR/paths.conf"
-  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --force
+  HOME=$TEST_HOME run bash "$REPO_DIR/deploy.sh" --base --force
   [ "$status" -eq 0 ]
   run cat "$TEST_HOME/.config/mytool/config"
   [ "$output" = "new" ]

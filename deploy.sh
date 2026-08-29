@@ -2,10 +2,12 @@
 set -euo pipefail
 
 FORCE=false
+BASE_ONLY=false
 MACHINE=""
 for arg in "$@"; do
   case "$arg" in
     -f|--force) FORCE=true ;;
+    --base) BASE_ONLY=true ;;   # ignore machine layers, deploy files/ alone
     -*) echo "Unknown flag: $arg"; exit 1 ;;
     *) MACHINE="$arg" ;;   # optional machine name, e.g. `./deploy.sh arch` → files-arch/
   esac
@@ -21,16 +23,26 @@ if [ ! -d "$BASE_DIR" ]; then
   exit 1
 fi
 
-if [ -n "$MACHINE" ]; then
+# shellcheck source=lib.sh
+. "$SCRIPT_DIR/lib.sh"
+
+if [ "$BASE_ONLY" = "true" ]; then
+  MACHINE=""
+  echo "[machine] none - files/ only (--base)"
+else
+  resolve_machine "$MACHINE"
+  if [ -z "$MACHINE" ]; then
+    echo "[error] no machine set. Export DOTFILES_MACHINE or pass one:"
+    echo "          $(basename "$0") arch"
+    exit 1
+  fi
   MACHINE_DIR="$SCRIPT_DIR/files-$MACHINE"
   if [ ! -d "$MACHINE_DIR" ]; then
     echo "[error] files-$MACHINE/ does not exist"
     exit 1
   fi
+  echo "[machine] $MACHINE"
 fi
-
-# shellcheck source=lib.sh
-. "$SCRIPT_DIR/lib.sh"
 
 # Assemble base + overlay in a staging dir, then treat that as the source of truth.
 STAGE="$(mktemp -d)"

@@ -4,6 +4,7 @@
 #   <f>.append  -> base <f> + tail        <f> -> replaces base       no base -> machine-only
 
 setup() {
+  unset DOTFILES_MACHINE
   TEST_HOME=$(mktemp -d)
   REPO_DIR=$(mktemp -d)
   mkdir -p "$REPO_DIR/files" "$REPO_DIR/files-testm"
@@ -100,7 +101,7 @@ teardown() {
   printf 'base\n' > "$REPO_DIR/files/.testrc"
   printf '~/.testrc    @testm\n' > "$REPO_DIR/paths.conf"
 
-  HOME=$TEST_HOME bash "$REPO_DIR/deploy.sh"
+  HOME=$TEST_HOME bash "$REPO_DIR/deploy.sh" --base
   [ ! -f "$TEST_HOME/.testrc" ]
 }
 
@@ -185,4 +186,64 @@ teardown() {
 
   run diff -r "$REPO_DIR/before" "$REPO_DIR/files-testm"
   [ "$status" -eq 0 ]
+}
+
+# ---------- machine resolution ----------
+#
+# $DOTFILES_MACHINE, else the argument, else error. Guessing is what would
+# apply the wrong machine's configs.
+
+@test "resolve: the argument selects the layer" {
+  printf 'base\n' > "$REPO_DIR/files/.testrc"
+  printf 'tail\n' > "$REPO_DIR/files-testm/.testrc.append"
+
+  HOME=$TEST_HOME run env -u DOTFILES_MACHINE bash "$REPO_DIR/deploy.sh" testm
+  [ "$status" -eq 0 ]
+  [ "$(cat "$TEST_HOME/.testrc")" = "$(printf 'base\ntail')" ]
+}
+
+@test "resolve: \$DOTFILES_MACHINE selects the layer with no argument" {
+  printf 'base\n' > "$REPO_DIR/files/.testrc"
+  printf 'tail\n' > "$REPO_DIR/files-testm/.testrc.append"
+
+  HOME=$TEST_HOME DOTFILES_MACHINE=testm run bash "$REPO_DIR/deploy.sh"
+  [ "$status" -eq 0 ]
+  [ "$(cat "$TEST_HOME/.testrc")" = "$(printf 'base\ntail')" ]
+}
+
+@test "resolve: \$DOTFILES_MACHINE takes precedence over the argument" {
+  mkdir -p "$REPO_DIR/files-other"
+  printf 'base\n' > "$REPO_DIR/files/.testrc"
+  printf 'from-testm\n' > "$REPO_DIR/files-testm/.testrc"
+  printf 'from-other\n' > "$REPO_DIR/files-other/.testrc"
+
+  HOME=$TEST_HOME DOTFILES_MACHINE=testm run bash "$REPO_DIR/deploy.sh" other
+  [ "$status" -eq 0 ]
+  [ "$(cat "$TEST_HOME/.testrc")" = "from-testm" ]
+}
+
+@test "resolve: errors when neither is set" {
+  printf 'base\n' > "$REPO_DIR/files/.testrc"
+
+  HOME=$TEST_HOME run env -u DOTFILES_MACHINE bash "$REPO_DIR/deploy.sh"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"no machine set"* ]]
+  [ ! -f "$TEST_HOME/.testrc" ]
+}
+
+@test "resolve: collect errors when neither is set" {
+  printf 'live\n' > "$TEST_HOME/.testrc"
+
+  HOME=$TEST_HOME run env -u DOTFILES_MACHINE bash "$REPO_DIR/collect.sh"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"no machine set"* ]]
+}
+
+@test "resolve: --base allows an explicit base-only run" {
+  printf 'base\n' > "$REPO_DIR/files/.testrc"
+  printf 'tail\n' > "$REPO_DIR/files-testm/.testrc.append"
+
+  HOME=$TEST_HOME DOTFILES_MACHINE=testm run bash "$REPO_DIR/deploy.sh" --base
+  [ "$status" -eq 0 ]
+  [ "$(cat "$TEST_HOME/.testrc")" = "base" ]
 }
