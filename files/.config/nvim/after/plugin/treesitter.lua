@@ -19,9 +19,22 @@ if vim.fn.executable("tree-sitter") == 0 then
 	)
 end
 
-require("nvim-treesitter").setup()
+-- lazy rewrites lazy-lock.json to match what is actually checked out, so a
+-- stale `master` install survives deploying a `main` lockfile. Bail out with
+-- something readable instead of a stack trace at every startup.
+local ok, ts = pcall(require, "nvim-treesitter")
+if not ok or type(ts.install) ~= "function" then
+	vim.notify(
+		"nvim-treesitter is still on `master`; this config needs `main`.\n"
+			.. "  Run :Lazy update nvim-treesitter (or :Lazy sync), then restart.",
+		vim.log.levels.WARN
+	)
+	return
+end
 
-require("nvim-treesitter").install({
+ts.setup()
+
+ts.install({
 	"python",
 	"javascript",
 	"typescript",
